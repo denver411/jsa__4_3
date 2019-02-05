@@ -1,54 +1,84 @@
 import setUpAttacks from '../src/js/app';
 
-const characters = [
+const charactersArray = [
   { name: 'маг', health: 100 },
   { name: 'лучник', health: 80 },
   { name: 'мечник', health: 10 },
 ];
 
-const attackWithShield = setUpAttacks(characters);
-const attackWithoutShield = setUpAttacks(characters, false);
+describe('Без щита', () => {
+  test('Урон распредеяется на одного персонажа', () => {
+    const characters = JSON.parse(JSON.stringify(charactersArray));
+    const attackWithoutShield = setUpAttacks(characters, false);
 
-// attacks[1](9); // атакуем лучника 9 баллами урона
-// [
-//   {name: 'маг', health: 97},
-//   {name: 'лучник', health: 77},
-//   {name: 'мечник', health: 7},
-// ]
+    attackWithoutShield[1](10);
+    expect(characters[0].health).toBe(100);
+    expect(characters[1].health).toBe(70);
+    expect(characters[2].health).toBe(10);
+  });
 
-console.log(characters);
+  test('Урон не распределяется в минус', () => {
+    const characters = JSON.parse(JSON.stringify(charactersArray));
+    const attackWithoutShield = setUpAttacks(characters, false);
 
-test('Урон распредеяется на всех', () => {
-  attackWithShield[1](9);
-  expect(characters[0].health).toBe(97);
-  expect(characters[1].health).toBe(77);
-  expect(characters[2].health).toBe(7);
+    attackWithoutShield[1](100);
+    expect(characters[0].health).toBe(100);
+    expect(characters[1].health).toBe(0);
+    expect(characters[2].health).toBe(10);
+  });
+
+  test('Урон не распредеяется на убитого персонажа', () => {
+    const characters = JSON.parse(JSON.stringify(charactersArray));
+    const attackWithoutShield = setUpAttacks(characters, false);
+    characters[1].health = 0;
+
+    attackWithoutShield[1](10);
+    expect(characters[0].health).toBe(100);
+    expect(characters[1].health).toBe(0);
+    expect(characters[2].health).toBe(10);
+  });
 });
 
-test('Урон распредеяется на одного персонажа', () => {
-  attackWithoutShield[1](10);
-  expect(characters[0].health).toBe(97);
-  expect(characters[1].health).toBe(67);
-  expect(characters[2].health).toBe(7);
-});
+describe('С щитом', () => {
+  test('Урон распредеяется на всех', () => {
+    const characters = JSON.parse(JSON.stringify(charactersArray));
+    const attackWithShield = setUpAttacks(characters);
 
-test('Нераспределенный урон снимается с атакованного персонажа', () => {
-  attackWithShield[2](20);
-  expect(characters[0].health).toBe(91);
-  expect(characters[1].health).toBe(61);
-  expect(characters[2].health).toBe(0);
-});
+    attackWithShield[1](9);
+    expect(characters[0].health).toBe(97);
+    expect(characters[1].health).toBe(77);
+    expect(characters[2].health).toBe(7);
+  });
 
-test('Урон распредеяется только на живых персонажей', () => {
-  attackWithShield[0](10);
-  expect(characters[0].health).toBe(86);
-  expect(characters[1].health).toBe(56);
-  expect(characters[2].health).toBe(0);
-});
+  test('Нераспределенный урон снимается с атакованного персонажа', () => {
+    const characters = JSON.parse(JSON.stringify(charactersArray));
+    const attackWithShield = setUpAttacks(characters);
 
-test('Убитый персонаж не может быть атакован', () => {
-  attackWithShield[2](10);
-  expect(characters[0].health).toBe(86);
-  expect(characters[1].health).toBe(56);
-  expect(characters[2].health).toBe(0);
+    attackWithShield[2](20);
+    expect(characters[0].health).toBe(94);
+    expect(characters[1].health).toBe(74);
+    expect(characters[2].health).toBe(2);
+  });
+
+  test('Урон распредеяется только на живых персонажей', () => {
+    const characters = JSON.parse(JSON.stringify(charactersArray));
+    const attackWithShield = setUpAttacks(characters);
+    characters[2].health = 2;
+
+    attackWithShield[2](32);
+    expect(characters[0].health).toBe(90);
+    expect(characters[1].health).toBe(70);
+    expect(characters[2].health).toBe(0);
+  });
+
+  test('Убитый персонаж не может быть атакован', () => {
+    const characters = JSON.parse(JSON.stringify(charactersArray));
+    const attackWithShield = setUpAttacks(characters);
+    characters[2].health = 0;
+
+    attackWithShield[2](10);
+    expect(characters[0].health).toBe(100);
+    expect(characters[1].health).toBe(80);
+    expect(characters[2].health).toBe(0);
+  });
 });
